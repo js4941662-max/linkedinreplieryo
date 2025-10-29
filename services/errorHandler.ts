@@ -40,6 +40,10 @@ class EnhancedErrorHandler {
       return this.handleNetworkError(error);
     }
     
+    if (this.isContentGenerationError(error)) {
+        return this.handleContentGenerationError(error);
+    }
+
     return this.handleGenericError(error);
   }
 
@@ -74,6 +78,25 @@ class EnhancedErrorHandler {
     return message.includes('network') ||
            message.includes('fetch') ||
            error?.name === 'NetworkError';
+  }
+
+  private isContentGenerationError(error: any): boolean {
+    return error?.name === 'AI_CONTENT_FAILURE' || (error?.message || '').includes('The AI returned an empty response');
+  }
+
+  private handleContentGenerationError(error: any): ErrorResponse {
+    return {
+      message: error.message || 'AI failed to generate content.',
+      userMessage: "The AI was unable to generate a response. This can happen if the question is ambiguous or if the answer isn't present in the provided document.",
+      suggestions: [
+        'Try rephrasing your question to be more specific.',
+        'Ensure your question is relevant to the provided document context.',
+        'If the problem persists, the information you are looking for may not be in the document.'
+      ],
+      severity: 'medium',
+      canRetry: true,
+      retryDelay: 0
+    };
   }
 
   private handleRateLimitError(error: any): ErrorResponse {
