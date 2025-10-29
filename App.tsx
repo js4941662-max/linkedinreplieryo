@@ -1,8 +1,10 @@
+
 import React, { useState, useCallback } from 'react';
 import { BrainCircuitIcon, CheckIcon, SparklesIcon, ExclamationTriangleIcon, LinkIcon } from './components/icons';
+// FIX: Import `evaluateReplyQuality` to resolve reference error.
 import { generateLinkedInReply, evaluateReplyQuality } from './services/geminiService';
 import { StructuredError } from './services/errorHandler';
-import type { ErrorResponse, QualityScore, GroundingSource } from './types';
+import type { ErrorResponse, QualityScore, GroundingSource, StatusCallback } from './types';
 
 const App: React.FC = () => {
   const [postContent, setPostContent] = useState<string>('');
@@ -11,6 +13,7 @@ const App: React.FC = () => {
   const [qualityScore, setQualityScore] = useState<QualityScore | null>(null);
   const [sources, setSources] = useState<GroundingSource[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [loadingStatus, setLoadingStatus] = useState<string>('');
   const [error, setError] = useState<ErrorResponse | string | null>(null);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
@@ -25,12 +28,18 @@ const App: React.FC = () => {
     setQualityScore(null);
     setSources([]);
     setIsCopied(false);
+    setLoadingStatus('Initializing AI cognitive framework...');
+
+    const statusCallback: StatusCallback = (status) => {
+        setLoadingStatus(status);
+    };
 
     try {
-      const { reply, sources: newSources } = await generateLinkedInReply(postContent, replyMode);
+      const { reply, sources: newSources } = await generateLinkedInReply(postContent, replyMode, statusCallback);
       setGeneratedReply(reply);
       setSources(newSources);
 
+      statusCallback('Assessing final output quality...');
       // Asynchronously evaluate quality without blocking the UI
       evaluateReplyQuality(postContent, reply, newSources).then(setQualityScore);
 
@@ -42,6 +51,7 @@ const App: React.FC = () => {
       }
     } finally {
       setIsLoading(false);
+      setLoadingStatus('');
     }
   }, [postContent, replyMode]);
   
@@ -66,7 +76,7 @@ const App: React.FC = () => {
                 MD/PhD-Level LinkedIn Reply Generator
               </h1>
               <p className="text-slate-400">
-                Advanced Scientific Discourse Engine v5.0
+                Advanced Scientific Discourse Engine v6.0 (QA Pipeline)
               </p>
             </div>
           </div>
@@ -112,11 +122,11 @@ const App: React.FC = () => {
             >
               {isLoading ? (
                  <>
-                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Synthesizing Response...
+                  <span>{loadingStatus}</span>
                 </>
               ) : (
                 <>
@@ -141,12 +151,16 @@ const App: React.FC = () => {
             
             <div className="w-full min-h-[240px] bg-navy-950 p-4 border border-navy-700 rounded-lg overflow-y-auto">
               {isLoading ? (
-                  <div className="space-y-3 animate-pulse pt-2">
-                    <div className="h-4 bg-navy-700 rounded w-5/6"></div>
-                    <div className="h-4 bg-navy-700 rounded w-full"></div>
-                    <div className="h-4 bg-navy-700 rounded w-4/5"></div>
-                    <div className="h-4 bg-navy-700 rounded w-1/2"></div>
-                  </div>
+                  <div className="flex flex-col items-center justify-center h-full text-center text-slate-400">
+                      <div className="mb-4">
+                           <svg className="animate-spin h-8 w-8 text-cyan-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                      </div>
+                      <p className="font-semibold text-slate-200">{loadingStatus}</p>
+                      <p className="text-sm text-slate-500 mt-1">This may take a moment...</p>
+                   </div>
               ) : error ? (
                    <div className="flex flex-col items-center justify-center h-full text-center text-red-400">
                       <ExclamationTriangleIcon className="w-12 h-12 mb-4" />

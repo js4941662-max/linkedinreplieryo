@@ -28,3 +28,5 @@ export interface QualityScore {
   overall: number;
   metrics: QualityMetrics;
 }
+
+export type StatusCallback = (status: string) => void;
