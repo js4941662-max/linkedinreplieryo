@@ -1,4 +1,3 @@
-
 export interface ErrorResponse {
   message: string;
   userMessage: string;
@@ -6,4 +5,26 @@ export interface ErrorResponse {
   severity: 'low' | 'medium' | 'high' | 'critical';
   canRetry: boolean;
   retryDelay?: number;
+}
+
+export interface GroundingSource {
+  uri: string;
+  title?: string;
+}
+
+export interface QualityMetrics {
+  scientificAccuracy: number;
+  citationRelevance: number;
+  technicalDepth: number;
+  noveltyOfInsight: number;
+  professionalTone: number;
+  sourceRelevance: number;
+  mechanisticClarity: number;
+  strategicInsight: number;
+  communicationClarity: number;
+}
+
+export interface QualityScore {
+  overall: number;
+  metrics: QualityMetrics;
 }

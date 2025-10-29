@@ -87,11 +87,11 @@ class EnhancedErrorHandler {
   private handleContentGenerationError(error: any): ErrorResponse {
     return {
       message: error.message || 'AI failed to generate content.',
-      userMessage: "The AI was unable to generate a response. This can happen if the question is ambiguous or if the answer isn't present in the provided document.",
+      userMessage: "The AI was unable to generate a reply. This can happen if the post's topic is outside the integrated knowledge base or if the input is ambiguous.",
       suggestions: [
-        'Try rephrasing your question to be more specific.',
-        'Ensure your question is relevant to the provided document context.',
-        'If the problem persists, the information you are looking for may not be in the document.'
+        'Ensure the post is related to the known scientific domains.',
+        'Try a different post to see if the issue persists.',
+        'If the problem continues, there might be a temporary issue with the AI service.'
       ],
       severity: 'medium',
       canRetry: true,
